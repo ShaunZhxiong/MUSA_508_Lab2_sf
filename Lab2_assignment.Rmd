@@ -17,6 +17,8 @@ library(tidyverse)
 library(tidycensus)
 library(sf)
 library(tmap) # mapping, install if you don't have it
+library(ggplot2)
+library(viridis)
 set.seed(717)
 ```
 
@@ -64,9 +66,22 @@ Steps in this assignment:
 ## Load data from {tidycensus}
 
 ```{r acs_vars, cache = TRUE, message = FALSE, warning = FALSE, results=FALSE}
-acs_vars <- c( "[PUT YOUR VAR CODES HERE]")
+census_api_key("b33ec1cb4da108659efd12b3c15412988646cbd8", overwrite = TRUE)
 
-myTracts <- c("[YOUR TRACTS GEOIDs HERE]")
+vars <- load_variables(2019, "acs5")
+
+acs_vars <- c( "B02001_005","B01003_001") #B02001_005= PPL OF ASIAN
+
+myTracts <- c("42101036900",
+              "42101007700",
+              "42101008701",
+              "42101008702",
+              "42101008802",
+              "42101008801",
+              "42101009200",
+              "42101009100",
+              "42101009000")
+
 
 acsTractsPHL.2019.sf <- get_acs(geography = "tract",
                              year = 2019,
@@ -76,34 +91,37 @@ acsTractsPHL.2019.sf <- get_acs(geography = "tract",
                              county = "Philadelphia",
                              output = "wide") %>%
   dplyr::select (GEOID, NAME, all_of(paste0(acs_vars,"E"))) %>%
-  rename ("[RENAME YOUR VARIABLES HERE]") %>%
+  rename (Total_Asian_Population = B02001_005E,Total_Population = B01003_001E) %>%
   mutate(Neighborhood = ifelse(GEOID %in% myTracts,
-                               "[YOUR NEIGHBORHOOD NAME HERE]",
-                               "REST OF PHILADELPHIA"))
+                               "University City",
+                               "REST OF PHILADELPHIA"),
+         pctAsian.2019 = Total_Asian_Population/Total_Population)
 ```
 
 ## Transform to WGS84 with {sf}
 
 ```{r}
 acsTractsPHL.2019.sf <- acsTractsPHL.2019.sf %>% 
-  st_transform(crs = "[PUT THE WGS84 EPSG CODE HERE]")
+  st_transform(crs = "EPSG:4326")
 ```
 
 ## Plot with {ggplot2}
 
 ```{r ggplot_geom_sf, warning = FALSE, echo = FALSE}
 ggplot()+
-  geom_sf(data = acsTractsPHL.2019.sf, aes(fill = "[YOUR VARIABLE NAME HERE]"),
+  geom_sf(data = acsTractsPHL.2019.sf, aes(fill = pctAsian.2019),
           color = "transparent")+
   geom_sf(data = acsTractsPHL.2019.sf %>%
-            filter(Neighborhood == "[YOUR NEIGHBORHOOD NAME HERE]") %>%
+            filter(Neighborhood == "University City") %>%
             st_union(),
           color = "white",
           fill = "transparent")+
-  # Bonus to figure out different color ramps with scale_fill_viridis()
-  labs(
-    title = "[YOUR TITLE HERE]",
-    subtitle = "[YOUR SUBTITLE HERE]",
-    caption = "[YOUR CAPTION HERE]")
+  
+  scale_fill_viridis(option="turbo") +
+
+    labs(
+    title = "Asian Distribution",
+    subtitle = "in the University City",
+    caption = "Data: US Census Bureau, ACS 5-year estimates")
 
 ```

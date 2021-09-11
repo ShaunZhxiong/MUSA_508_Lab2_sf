@@ -45,6 +45,7 @@ Your Census API key should be loaded from the week 1 exercise. If you get an API
 We will use the same ACS variables as in the last exercise. The object called `acs_vars` is used to keep the variables we are interested in. Also, we will focus on specific tracts in the Mt. Airy neighborhood. Finally, we fetch the data using the `get_acs()` function. The code below is the same code used at the end of Week \#1 with the exception of removing the last line calling `st_as_af()` . We'll discuss why later.
 
 ```{r acs_vars, cache = FALSE, message = FALSE, warning = FALSE, results=FALSE}
+census_api_key("b33ec1cb4da108659efd12b3c15412988646cbd8", overwrite = TRUE,install=TRUE)
 acs_vars <- c("B01001_001E", # ACS total Pop estimate
               "B25002_001E", # Estimate of total housing units
               "B25002_003E", # Number of vacant housing units
@@ -117,7 +118,8 @@ First, we can see what `class` the `acsTractsPHL.2016.sf` object is. It is class
 If we print the `acsTractsPHL.2016.sf` object, it looks a lot like a table, but has some extra information at the top that it is an `{sf}` object and has attributes aside from the tabular data.
 
 ```{r}
-head(acsTractsPHL.2016.sf,2)
+head(acsTractsPHL.2016.sf,3)
+
 ```
 
 You will notice new information at the top of the print out from the `acsTractsPHL.2016.sf$geometry` object. This includes:
@@ -160,7 +162,12 @@ The rabbit hole of understanding coordinate reference systems is very deep. We w
 
 -   you need to know, or figure out, the CRS for all of the spatial data you work with. It is not enough just to guess. You will need to figure it out through looking at data sources and mapping data to confirm
 
--   There are two main types of CRS, Projected and Unprojected (aka Geographic) coordinate systems. Projected Coordinate Systems (PCS) are how we map/project the round earth onto a flat map. Common examples of PCS are State Plane, UTM, and Mercator coordinate systems. Geographic Coordinate Systems (GCS) are how we located things on the round'ish earth. Common examples are WGS84, GRS80, and NAD83. Every PCS is based on a CGS, but a GCS can be mapped on its own.
+There are two main types of CRS
+Projected & Unprojected (aka Geographic) coordinate systems. 
+
+Projected Coordinate Systems (PCS) are how we map/project the round earth onto a flat map. Common examples of PCS are State Plane, UTM, and Mercator coordinate systems. 
+
+Geographic Coordinate Systems (GCS) are how we located things on the round'ish earth. Common examples are WGS84, GRS80, and NAD83. Every PCS is based on a GCS, but a GCS can be mapped on its own.
 
 -   The most common GCS is WGS84, also known as [`EPSG:4326`](https://epsg.io/4326) . This is a very common CRS and the default for many mapping applications and mapping libraries like `leaflet` . You will use it very often.
 
